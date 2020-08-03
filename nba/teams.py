@@ -2,9 +2,17 @@ from nba.players import find_player_league_leader_info
 from nba.static import find_teams, find_standings
 
 
+stored_teams = {}
+stored_standings = {}
+
+
 def find_team_name(team_id, season):
-    standings = find_standings(season)
-    for team in standings:
+    if season in stored_standings:
+        standings = stored_standings[season]
+    else:
+        standings = find_standings(season)
+        stored_standings[season] = standings
+    for team in standings['Standings']:
         if team['TeamID'] == team_id:
             return team['TeamName']
 
@@ -12,8 +20,12 @@ def find_team_name(team_id, season):
 # input: teamId - number
 # output: playoffRank - number (1-15)
 def find_team_playoff_ranking(team_id, season):
-    standings = find_standings(season)
-    for team in standings:
+    if season in stored_standings:
+        standings = stored_standings[season]
+    else:
+        standings = find_standings(season)
+        stored_standings[season] = standings
+    for team in standings['Standings']:
         if team['TeamID'] == team_id:
             return team['PlayoffRank']
 
@@ -28,7 +40,11 @@ def find_team_playoff_ranking(team_id, season):
 #     'rank': rank
 #   }]
 def find_team_league_leader_info(team_id, season):
-    teams = find_teams(season)
+    if season in stored_teams:
+        teams = stored_teams[season]
+    else:
+        teams = find_teams(season)
+        stored_teams[season] = teams
     leaders = []
     if isinstance(team_id, int):
         if team_id in teams:

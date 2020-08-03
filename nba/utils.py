@@ -1,5 +1,7 @@
 from requests.exceptions import Timeout
 from time import sleep
+from datetime import datetime
+
 
 def call_nba_api(api_call, positional_arguments, keyword_arguments):
     failures = 1
@@ -14,7 +16,9 @@ def call_nba_api(api_call, positional_arguments, keyword_arguments):
                                                                                           api_call))
                 raise RuntimeError
             wait_time = failures * failures
-            print("Catching {} #{} from {}, sleeping for {} and proceeding".format(type(ex).__name__, failures, api_call, '{}s'.format(wait_time)))
+            print(
+                "Catching {} #{} from {}, sleeping for {} and proceeding".format(type(ex).__name__, failures, api_call,
+                                                                                 '{}s'.format(wait_time)))
             sleep(wait_time)
             failures += 1
         except Exception as ex:
@@ -35,11 +39,10 @@ def find_season(date):
     year = date.year
     if date.month > 8:
         year2 = int(date.strftime('%y')) + 1
-        return '{}-{}'.format(year,year2)
+        return '{}-{}'.format(year, year2)
     else:
         year2 = date.strftime('%y')
-        return '{}-{}'.format(year-1,year2)
-
+        return '{}-{}'.format(year - 1, year2)
 
 
 def print_games(matchups, date):
@@ -55,9 +58,55 @@ def print_games(matchups, date):
         print_tv_info(matchup)
         print_result(matchup)
         print_league_leader_string(matchup)
-        print('   Team Score: {}, Player Score: {}, Overall: {}'.format(matchup['score']['team'],matchup['score']['player'],matchup['score']['overall']))
+        print('   Team Score: {}, Player Score: {}, Overall: {}'.format(matchup['score']['team'],
+                                                                        matchup['score']['player'],
+                                                                        matchup['score']['overall']))
         print('------------------------------------------------------------------------')
         i += 1
+
+
+def get_games_str(matchups, user_date):
+    # converted_date = datetime.strptime(user_date, '%m-%d-%y')
+    converted_date = user_date
+    games_str = '------------------------------------------------------------------------\n'
+    games_str += '{} NBA Games on {}, {} {} {}\n'.format(len(matchups), converted_date.strftime('%A'),
+                                                         converted_date.strftime("%B"), converted_date.day,
+                                                         converted_date.year)
+    games_str += '------------------------------------------------------------------------\n'
+    games_str += '\n'
+    games_str += '------------------------------------------------------------------------\n'
+    i = 1
+    for matchup in matchups:
+        games_str += '{}. {} vs. {}\n'.format(i, matchup['teams'][0]['name'], matchup['teams'][1]['name'])
+        games_str += get_tv_info(matchup)
+        games_str += get_result(matchup)
+        games_str += get_league_leader_string(matchup)
+        games_str += '   Team Score: {}, Player Score: {}, Overall: {}\n'.format(matchup['score']['team'],
+                                                                                 matchup['score']['player'],
+                                                                                 matchup['score']['overall'])
+        games_str += '------------------------------------------------------------------------\n'
+        i += 1
+    return games_str
+
+
+def get_games_str_sns(matchups, user_date):
+    # converted_date = datetime.strptime(user_date, '%m-%d-%y')
+    converted_date = user_date
+    games_str = '-------------------------\n'
+    games_str += '{} NBA Games on {}, {} {} {}\n'.format(len(matchups), converted_date.strftime('%A'),
+                                                         converted_date.strftime("%B"), converted_date.day,
+                                                         converted_date.year)
+    games_str += '-------------------------\n'
+    games_str += '\n'
+    games_str += '-------------------------\n'
+    i = 1
+    for matchup in matchups:
+        games_str += '{}. {} vs. {}\n'.format(i, matchup['teams'][0]['name'], matchup['teams'][1]['name'])
+        games_str += get_tv_info_sns(matchup)
+        games_str += get_league_leader_string(matchup)
+        games_str += '-------------------------\n'
+        i += 1
+    return games_str
 
 
 def print_league_leader_string(matchup):
@@ -80,6 +129,27 @@ def print_league_leader_string(matchup):
     print(league_leader_str)
 
 
+def get_league_leader_string(matchup):
+    if len(matchup['leagueleaders']) == 0:
+        return ''
+    league_leader_str = ''
+    local_league_leader_str = ''
+    previous_leader = 0
+    for leader in matchup['leagueleaders']:
+        # print('   {} - {}({})'.format(leader['name'], leader['stat'], leader['rank']))
+        if leader['id'] == previous_leader:
+            local_league_leader_str += ', {}({})'.format(leader['stat'], leader['rank'])
+        elif len(local_league_leader_str) == 0:
+            local_league_leader_str += '   {} - {}({})'.format(leader['name'], leader['stat'], leader['rank'])
+            previous_leader = leader['id']
+        else:
+            league_leader_str += local_league_leader_str
+            league_leader_str += '\n'
+            local_league_leader_str = '   {} - {}({})'.format(leader['name'], leader['stat'], leader['rank'])
+            previous_leader = leader['id']
+    return league_leader_str
+
+
 def print_tv_info(matchup):
     if len(matchup['tv']) == 0:
         return
@@ -88,6 +158,28 @@ def print_tv_info(matchup):
     else:
         print('   {} on {} ({}) from the {}'.format(matchup['time'], matchup['tv']['network'], matchup['tv']['scope'],
                                                     matchup['venue']))
+
+
+def get_tv_info(matchup):
+    if len(matchup['tv']) == 0:
+        return ''
+    elif matchup['tv']['scope'] == 'National':
+        return '   {} on {} from the {}\n'.format(matchup['time'], matchup['tv']['network'], matchup['venue'])
+    else:
+        return '   {} on {} ({}) from the {}\n'.format(matchup['time'], matchup['tv']['network'],
+                                                       matchup['tv']['scope'],
+                                                       matchup['venue'])
+
+
+def get_tv_info_sns(matchup):
+    if len(matchup['tv']) == 0:
+        return ''
+    elif matchup['tv']['scope'] == 'National':
+        return '   {} on {}\n'.format(matchup['time'], matchup['tv']['network'])
+    else:
+        return '   {} on {} ({})\n'.format(matchup['time'], matchup['tv']['network'],
+                                                       matchup['tv']['scope'])
+
 
 
 def print_result(matchup):
@@ -101,4 +193,20 @@ def print_result(matchup):
                 winner = team['name']
             elif matchup['outcome']['loser'] == team['id']:
                 loser = team['name']
-        print('   {} def {} {} - {}'.format(winner, loser, matchup['outcome']['w_score'], matchup['outcome']['l_score']))
+        print(
+            '   {} def {} {} - {}'.format(winner, loser, matchup['outcome']['w_score'], matchup['outcome']['l_score']))
+
+
+def get_result(matchup):
+    if matchup['outcome']['w_score'] == 0:
+        return ''
+    else:
+        winner = ''
+        loser = ''
+        for team in matchup['teams']:
+            if matchup['outcome']['winner'] == team['id']:
+                winner = team['name']
+            elif matchup['outcome']['loser'] == team['id']:
+                loser = team['name']
+        return '   {} def {} {} - {}\n'.format(winner, loser, matchup['outcome']['w_score'],
+                                               matchup['outcome']['l_score'])

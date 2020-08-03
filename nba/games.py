@@ -12,18 +12,19 @@ from nba.static import find_static_games, find_scoreboard, find_common_team_info
 #       id: id,
 #       teams: [ id: id, teamName: name ]
 #   ]}
-def find_games_info(date):
-    if datetime.today() - timedelta(days=1) <= date:
-        return find_future_matchups(date)
+def find_games_info(user_date):
+    # converted_date = datetime.strptime(user_date, '%m-%d-%y')
+    converted_date = user_date
+    if datetime.today() - timedelta(days=1) <= converted_date:
+        return find_future_matchups(converted_date)
     else:
-        return find_previous_matchups(date)
+        return find_previous_matchups(converted_date)
 
 
 def find_future_matchups(date):
     matchups = []
     season = find_season(date)
     for team in find_team_list(date):
-        find_common_team_info(find_season(date))
         matchup = find_matchup(str(team['gameId']), matchups)
         if matchup is None:
             matchup = create_matchup(team['gameId'], date)
@@ -37,7 +38,7 @@ def find_previous_matchups(date):
     matchups = []
     season = find_season(date)
     game_finder_results = find_static_games(date)
-    for team in game_finder_results:
+    for team in game_finder_results['LeagueGameFinderResults']:
         matchup = find_matchup(str(team['GAME_ID']), matchups)
         if matchup is None:
             matchup = create_matchup(team['GAME_ID'], date)

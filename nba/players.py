@@ -1,6 +1,8 @@
 from nba.static import league_leader_categories, find_league_leaders
 
 
+stored_leaders = {}
+
 # input: player_id - number, player_name - string
 # output:
 # leader =
@@ -11,8 +13,12 @@ from nba.static import league_leader_categories, find_league_leaders
 #     'rank': rank
 #   }
 def find_player_league_leader_info(player_id, season):
+    if season in stored_leaders:
+        league_leaders = stored_leaders[season]
+    else:
+        league_leaders = find_league_leaders(season)
+        stored_leaders[season] = league_leaders
     leader_info = []
-    league_leaders = find_league_leaders(season)
     for category in league_leader_categories:
         if is_leader(league_leaders[category], player_id):
             leader_info.append(find_league_leader_info(category, league_leaders[category], player_id))
