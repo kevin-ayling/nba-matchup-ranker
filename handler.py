@@ -17,7 +17,7 @@ def date_handler(event, context):
     return games_str
 
 
-
-if __name__ == "__main__":
-    x = date_handler({'date': '08/02/20'}, {})
-    print(x)
+#
+# if __name__ == "__main__":
+#     x = date_handler({'date': '08/02/20'}, {})
+#     print(x)
