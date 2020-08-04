@@ -16,8 +16,9 @@ def date_handler(event, context):
         write_sns(games_str)
     return games_str
 
-
 #
 # if __name__ == "__main__":
-#     x = date_handler({'date': '08/02/20'}, {})
+#     x = date_handler({'date': '08/03/20'}, {})
+#     # x = date_handler({}, {})
+#
 #     print(x)

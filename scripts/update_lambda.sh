@@ -1,3 +1,4 @@
+cd ..
 if [ "$1" == "-d" ]; then
   echo "d flag found"
   cd venv/lib/python3.7/site-packages/
