@@ -1,9 +1,2 @@
 # nba-matchup-ranker
-
-
-aws lambda add-permission \
---function-name nab-matchup-ranker \
---statement-id dailyCWpermission \
---action 'lambda:InvokeFunction' \
---principal events.amazonaws.com \
---source-arn arn:aws:events:us-east-1:557026794806:rule/NBAdailyTrigger
+ This repo is used to find NBA matchups each day, rank and return the relevant information. It is deployed as an aws lambda fn with a CloudWatch Event trigger, and SNS for distribution.
