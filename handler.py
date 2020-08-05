@@ -6,7 +6,6 @@ from nba.aws import write_sns, invoke_lambda
 from nba.links import map_links, generate_html_and_write_to_s3, print_links
 
 
-
 def date_handler(event, context):
     if 'date' in event:
         user_date = datetime.strptime(event['date'], '%m/%d/%y')
@@ -23,7 +22,7 @@ def date_handler(event, context):
 
 
 if __name__ == "__main__":
-    x = date_handler({'date': '08/04/20'}, {})
-    # x = date_handler({}, {})
+    # x = date_handler({'date': '08/04/20'}, {})
+    x = date_handler({}, {})
 
     print(x)
