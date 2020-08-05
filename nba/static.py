@@ -1,13 +1,21 @@
 from nba_api.stats.endpoints import leaguestandings, homepageleaders, commonteamroster, leaguegamefinder, scoreboardv2, \
     teaminfocommon, leagueleaders, leaguegamelog
 from nba.utils import call_nba_api
-from nba.aws import read_obj, key_exists_in_s3, write_obj
+from nba.aws import read_obj, key_exists_in_s3, write_obj, invoke_lambda
 import json
 import requests
 from os import path
 
 league_leader_categories = ['Points', 'Rebounds', 'Assists', 'Defense', 'Clutch', 'Playmaking', 'Efficiency',
                             'Fast Break', 'Scoring Breakdown']
+
+def find_links(date):
+    s3_links = read_from_s3('Links.json')
+    if date in s3_links:
+        return s3_links[date.strftime('%m/%d/%Y')]
+    s3_links[date.strftime('%m/%d/%Y')] = invoke_lambda('nbfabite-links')['links']
+    write_obj(s3_links, 'Links.json')
+    return s3_links[date.strftime('%m/%d/%Y')]
 
 
 def find_all_stars(season):

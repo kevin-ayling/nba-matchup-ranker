@@ -7,7 +7,7 @@ today = datetime.today().strftime('%m/%d/%y')
 payload = {'date': today}
 client = boto3.client('lambda')
 response1 = client.invoke(
-    FunctionName='nab-matchup-ranker',
+    FunctionName='nba-matchups-daily',
     Payload=json.dumps(payload),
 )
 resp_payload = json.loads(response1['Payload'].read().decode('utf-8'))
@@ -18,6 +18,7 @@ if 'errorType' in resp_payload:
     print("------------------------- VALIDATION FAILED -----------------------------")
     print("-------------------------------------------------------------------------")
     print("-------------------------------------------------------------------------")
+    print(resp_payload)
 
 else:
     print("-------------------------------------------------------------------------")
